@@ -6,28 +6,74 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DOOR State</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.js"></script>
+    <script type="text/javascript" src="./js/mqttmin.js"></script>
+    <script type="text/javascript" src="./js/mqttws31.js"></script>
     <script>
-        const client = mqtt.connect('mqtt://localhost:1883')
+        let status = {
+            hood_status: null,
+            rear_rh_door_status: null,
+            rear_lh_door_status: null,
+            trunk_status: null
+        };
 
-        client.on('connect', function () {
-            client.subscribe('presence', function (err) {
-                if (!err) {
-                   client.publish('presence', 'Hello Mosqitto')
-                }
-            })
-        })
+        function onConnect() {
+            client.subscribe("sampleApp/currentHoodOpenStatus");
+            client.subscribe("sampleApp/currentDoorStateRearRH");
+            client.subscribe("sampleApp/currentDoorStateRearLH");
+            client.subscribe("sampleApp/currentTrunkOpenStatus");
+            getAllStatus();
+        }
 
-        client.on('message', function (topic, message) {
-            // message is Buffer
-            console.log(message.toString())
-            client.end()
-        })
+        function getAllStatus() {
+            var message = new Messaging.Message("");
+            message.destinationName = "sampleapp/getAllStatus";
+            client.send(message)
+        }
+        function onConnectionLost(obj) {
+            console.log("connection lost");
+            console.log(obj)
+        }
+        function initializei() {
+            var r = (Math.round(Math.random() * 255)).toString(16);
+            var g = (Math.round(Math.random() * 255)).toString(16);
+            var b = (Math.round(Math.random() * 255)).toString(16);
+            client = new Messaging.Client("broker.mqttdashboard.com", Number(8000), r + g + b);
+            console.log("Connection attempeted with client id: " + r + g + b);
+            client.onConnect = onConnect
+            client.onConnectionLost = onConnectionLost
+            client.onMessageArrived = onMessageArrived
+
+            var options = {
+                timeout: 3,
+                onSuccess: onConnect
+            };
+            client.connect(options)
+        }
+        function onMessageArrived(message) {
+            var payload = JSON.parse(message.payloadString);
+            status[payload.name] = payload.status;
+            console.log(status);
+
+        }
     </script>
 </head>
 
-<body>
-hi
+<body onload="initializei()">
+    <div>
+        <button onclick="getAllStatus()">Get All Status</button>
+    </div>
+    <div>
+        HOOD: {{status.hood_status}}
+    </div>
+    <div>
+        TRUNK: {{status.trunk_status}}
+    </div>
+    <div>
+        Right: {{status.rear_rh_door_status}}
+    </div>
+    <div>
+        Left: {{status.rear_lh_door_status}}
+    </div>
 </body>
 
 </html>
