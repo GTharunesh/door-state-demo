@@ -9,7 +9,7 @@ export default {
                 'trunk_status': null
             },
             client: null,
-            readyToGo:false,
+            readyToGo: false,
         };
     },
     methods: {
@@ -49,6 +49,8 @@ export default {
         onMessageArrived(message) {
             var payload = JSON.parse(message.payloadString);
             this.currentStatus[payload.name] = payload.status;
+            this.readyToGo = !(Object.values(this.currentStatus).includes(true
+            ));
             console.log(this.currentStatus);
 
         }
@@ -58,82 +60,89 @@ export default {
     },
     template: `
     <div class="container">
-        <div class="row">
-            <div class="col-md-6">
-                <button type="button" class="btn btn-primary"  @click ="getAllStatus()">
-                Get Status
-                </button>
+        <h1 style="text-align: center;">Vehicle Status</h1>
+        <div class="shadow p-3 mt-2 mb-5 bg-body rounded" style="width: 60%;margin-left: 20%;">
+            <div class="row">
+                <div class="d-flex justify-content-end" style="padding-right: 3rem;">
+                    <button type="button" class="btn btn-primary btn-sm"  @click ="getAllStatus()">
+                        Get Current Status
+                    </button>
+                </div>
             </div>
-        </div>
-        <div class="shadow p-3 mt-2 mb-5 bg-body rounded">
             <div class="column">
                 <div class="col-md-6">
                     <div>
                         <div class="form-check form-switch d-flex flex-row">
-                            <label class="form-label">
+                            <label style="font-weight: bold;">
                                     Vehicle Status:
                             </label>
                             <input class="form-check-input p-disabled " type="checkbox" id="flexSwitchCheckChecked1"
-                                checked style="margin: 7px 10px; cursor:not-allowed"
+                                :disabled='true'
+                                checked style="margin: 7px 10px; cursor:not-allowed; opacity: 100%;"
                                 :style= "
-                                    [currentStatus.hood_status ? 
-                                        {'background-color': 'red'} 
-                                        : {'background-color': 'green'}]" 
+                                    [readyToGo ? 
+                                        {'background-color': 'green','border-color': 'green'} 
+                                        : {'background-color': 'red','border-color': 'red'}]" 
                             />
-                            <label v-if="!currentStatus.hood_status">
+                            <label v-if="readyToGo">
                                 Ready to Go
                             </label>
+                            <label v-else>
+                                Not Ready
+                            </label>
                         </div>
-                        <div class="form-check form-switch d-flex flex-row">
-                            <label for="bonnet closed car image" class="form-label">
-                                Hood Status:
-                            </label>
-                            <input class="form-check-input p-disabled " type="checkbox" id="flexSwitchCheckChecked"
-                                checked style="margin: 7px 10px; cursor:not-allowed"
-                                :style= "
-                                    [currentStatus.hood_status ? 
-                                        {'background-color': 'red'} 
-                                        : {'background-color': 'green'}]" 
-                            />
-                            <label v-if="currentStatus.hood_status">
-                                Opened
-                            </label>
+                        <div class="form-check form-switch">
+                            <lable style="font-weight: bold;">
+                                Vehicle Health:
+                            </lable>
+                        </div>
+                        <div class="form-check form-switch cloumn" style="padding-left: 70px;">
+                            <div class="d-flex flex-row">
+                                <label class="form-label">
+                                    Trunk Status:&nbsp
+                                </label>
+                                <label v-if="currentStatus.trunk_status" style="color: red;font-weight: bold;">
+                                    Opened
+                                </label>
+                                <label v-else style="color: green;font-weight: bold;">
+                                    Closed
+                                </label>
+                            </div>
+                            <div class="d-flex flex-row">
+                                <label class="form-label">
+                                    Hood Status:&nbsp
+                                </label>
+                                <label v-if="currentStatus.hood_status" style="color: red;font-weight: bold;">
+                                    Opened
+                                </label>
+                                <label v-else style="color: green;font-weight: bold;">
+                                    Closed
+                                </label>
+                            </div>
+                            <div class="d-flex flex-row">
+                                <label class="form-label">
+                                    Rear Right Door Status:&nbsp
+                                </label>
+                                <label v-if="currentStatus.rear_rh_door_status" style="color: red;font-weight: bold;">
+                                    Opened
+                                </label>
+                                <label v-else style="color: green;font-weight: bold;">
+                                    Closed
+                                </label>
+                            </div>
+                            <div class="d-flex flex-row">
+                                <label class="form-label">
+                                    Rear Left Door Status:&nbsp
+                                </label>
+                                <label v-if="currentStatus.rear_lh_door_status" style="color: red;font-weight: bold;">
+                                    Opened
+                                </label>
+                                <label v-else style="color: green;font-weight: bold;">
+                                    Closed
+                                </label>
+                            </div>
                         </div>
                     </div>
-                </div>
-            <div class="col-md-6">
-                <div>
-                    <label for="bonnet closed car image" class="form-label" 
-                        v-if="currentStatus.trunk_status">
-                        Trunk Open
-                    </label>
-                    <label for="bonnet closed car image" class="form-label" v-else>
-                        Trunk Closed
-                    </label>
-                </div>
-            </div>
-        </div>
-        <div class="column">
-            <div class="col-md-6">
-                <div>
-                    <label for="bonnet closed car image" class="form-label" 
-                        v-if="currentStatus.rear_rh_door_status">
-                        Right Door Open
-                    </label>
-                    <label for="bonnet closed car image" class="form-label" v-else>
-                        Right Door Closed
-                    </label>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div>
-                    <label for="bonnet closed car image" class="form-label" 
-                        v-if="currentStatus.rear_lh_door_status">
-                        Left Door Open
-                    </label>
-                    <label for="bonnet closed car image" class="form-label" v-else>
-                        Left Door Closed
-                    </label>
                 </div>
             </div>
         </div>
